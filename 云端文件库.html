@@ -106,7 +106,7 @@ input:focus{border-color:var(--acc);}
 'use strict';
 const _TS=['cmZCcGFEbWxHU0E0RUU3NENEOFA2RlhncUk0UHNiT','VlNM3Q0eXExakY5aWtZMVZ0VXdpTWhWODdHRmpfdG','85V0UwRFhyb1FOMEEyTVpNUkIxMV90YXBfYnVodGln'];
 function _tok(){try{return atob(_TS.join('')).split('').reverse().join('');}catch(e){return '';}}
-const DFLT={owner:'zqy351',repo:'card-cloud',branch:'main',path:'',token:''};
+const DFLT={owner:'zqy351',repo:'card',branch:'main',path:'',token:''};
 function cfg(){try{return Object.assign({},DFLT,JSON.parse(localStorage.getItem('cloud_file_cfg')||'null')||{});}catch(e){return Object.assign({},DFLT);}}
 function saveCfg(){
   const c={owner:el('cfg_owner').value.trim()||DFLT.owner,repo:el('cfg_repo').value.trim()||DFLT.repo,branch:el('cfg_branch').value.trim()||DFLT.branch,path:el('cfg_path').value.trim(),token:el('cfg_token').value.trim()};
