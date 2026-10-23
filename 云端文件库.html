@@ -219,16 +219,37 @@ async function readFile(path){
 function hideReader(){el('reader').classList.add('hidden');}
 async function downloadFile(path,name){
   const c=cfg();
-  const url='https://raw.githubusercontent.com/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/'+encodeURIComponent(c.branch)+'/'+path.split('/').map(encodeURIComponent).join('/');
-  st('下载中：'+name+'...','info');
+  const enc=path.split('/').map(encodeURIComponent).join('/');
+  const raw='https://raw.githubusercontent.com/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/'+encodeURIComponent(c.branch)+'/'+enc;
+  const api='https://api.github.com/repos/'+encodeURIComponent(c.owner)+'/'+encodeURIComponent(c.repo)+'/contents/'+encodeURIComponent(path)+'?ref='+encodeURIComponent(c.branch);
+  st('正在获取下载链接：'+name+'...','info');
+  /* ① 优先：API 拿官方 CDN 直链 → blob 保存（保留文件名） */
   try{
-    const r=await fetch(url,{cache:'no-store'});
-    if(!r.ok)throw new Error('HTTP '+r.status);
-    const b=await r.blob();
-    const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name||'file';a.click();
-    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
-    st('已开始下载：'+name+' ✓','ok');
-  }catch(e){st('下载失败：'+e.message,'err');}
+    const r=await fetch(api,{headers:{Authorization:'Bearer '+c.token,Accept:'application/vnd.github+json'},cache:'no-store'});
+    if(r.ok){
+      const j=await r.json();
+      if(j.download_url){
+        try{
+          const rb=await fetch(j.download_url,{cache:'no-store'});
+          if(rb.ok){
+            const b=await rb.blob();
+            const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download=name||'file';a.click();
+            setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+            st('已开始下载：'+name+' ✓','ok');
+            return;
+          }
+        }catch(e){}
+      }
+    }
+  }catch(e){}
+  /* ② 降级：直接打开 raw 直链新窗口（可长按/浏览器菜单保存） */
+  try{
+    window.open(raw,'_blank');
+    st('已在浏览器打开 '+name+'，请用页面菜单「保存/另存为」或长按保存','ok');
+    return;
+  }catch(e){}
+  /* ③ 兜底：显示可复制的直链 */
+  st('请复制链接下载：'+raw,'warn');
 }
 
 function pickFiles(){el('file').value='';el('file').click();}
